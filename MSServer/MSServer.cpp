@@ -7,13 +7,13 @@ ServerNet.cpp
 
 
 
-#include"ServerNet.h"
+#include "MSServer.h"
 
 
 
 /*服务器初始化*/
 
-int ServerNet::ServerInit(const char* address, int port)
+int ServerNet::ServerInit(const char* address, int port1 , int port2)
 
 {
 
@@ -55,9 +55,25 @@ int ServerNet::ServerInit(const char* address, int port)
 
 
 
-	m_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	m_sock1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	if (m_sock == INVALID_SOCKET)
+	if (m_sock1 == INVALID_SOCKET)
+
+		// 创建socket出现了异常
+
+	{
+
+		printf("server socket failed with error: %d\n", WSAGetLastError());
+
+		rlt = 2;
+
+		return rlt;
+
+	}
+
+	m_sock2 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if (m_sock2 == INVALID_SOCKET)
 
 		// 创建socket出现了异常
 
@@ -72,22 +88,28 @@ int ServerNet::ServerInit(const char* address, int port)
 	}
 
 
-
 	// 声明信息
 
-	SOCKADDR_IN	servaddr;
+	SOCKADDR_IN	servaddr1;
+	
+	servaddr1.sin_family = AF_INET;
 
-	servaddr.sin_family = AF_INET;
+	servaddr1.sin_port = port1;
 
-	servaddr.sin_port = port;
+	servaddr1.sin_addr.s_addr = inet_addr(address);
 
-	servaddr.sin_addr.s_addr = inet_addr(address);
+	SOCKADDR_IN	servaddr2;
 
+	servaddr2.sin_family = AF_INET;
 
+	servaddr2.sin_port = port2;
+
+	servaddr2.sin_addr.s_addr = inet_addr(address);
 
 	//绑定
 
-	iErrorMsg = bind(m_sock, (SOCKADDR*)&servaddr, sizeof(servaddr));
+	iErrorMsg = bind(m_sock1, (SOCKADDR*)&servaddr1, sizeof(servaddr1));
+	
 
 	if (iErrorMsg < 0)
 
@@ -103,7 +125,21 @@ int ServerNet::ServerInit(const char* address, int port)
 
 	}
 
+	iErrorMsg = bind(m_sock2, (SOCKADDR*)&servaddr2, sizeof(servaddr2));
 
+	if (iErrorMsg < 0)
+
+	{
+
+		//绑定失败
+
+		printf("bind failed with error : %d\n", iErrorMsg);
+
+		rlt = 3;
+
+		return rlt;
+
+	}
 
 	return rlt;
 
@@ -117,9 +153,9 @@ void ServerNet::ServerRun()
 
 	// 公开连接
 
-	listen(m_sock, 5);
+	listen(m_sock1, 5);
 
-
+	listen(m_sock2, 5);
 
 	SOCKADDR_IN tcpAddr;
 
@@ -139,7 +175,7 @@ void ServerNet::ServerRun()
 
 		// 接收信息
 
-		newSocket = accept(m_sock, (sockaddr*)&tcpAddr, &len);
+		newSocket = accept(m_sock1, (sockaddr*)&tcpAddr, &len);
 
 
 
@@ -228,6 +264,6 @@ void ServerNet::ServerRun()
 
 	// 关闭自身socket
 
-	closesocket(m_sock);
+	closesocket(m_sock1);
 
 }

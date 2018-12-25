@@ -3,7 +3,7 @@
 
 #include<string>
 
-#include"ClientNet.h"
+#include"Client2.h"
 
 
 
@@ -49,9 +49,9 @@ int main()
 
 	//连接到127.0.0.1（即本地）,端口号为8888的服务端
 
-	printf("connecting.....\n");
+	printf("8010 connecting.....\n");
 
-	rlt = client.ClientConnect(8888, "127.0.0.1");
+	rlt = client.ClientConnect(8010, "127.0.0.1");
 
 
 
